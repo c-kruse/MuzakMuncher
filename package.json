@@ -1,0 +1,21 @@
+{
+  "name": "MuzakMuncher",
+  "version": "1.0.0",
+  "description": "Munches Muzak, Jams, and the fattest of Beats; Digests them in the dankest of Databases.",
+  "main": "app.js",
+  "scripts": {
+	"test": "node_modules/.bin/mocha --reporter spec",
+    "start": "node app.js"
+  },
+  "author": "Christian Kruse",
+  "license": "ISC",
+  "dependencies": {
+    "bunyan": "^1.8.12",
+    "chai": "^4.1.2",
+    "cheerio": "^0.22.0",
+    "mocha": "^4.0.1",
+    "mongodb": "^2.2.33",
+    "request": "^2.83.0",
+    "sinon": "^4.1.2"
+  }
+}
