@@ -15,6 +15,7 @@ process.on('unhandledRejection', (reason, p) => {
 describe("Manager", () => {
     describe("denormJam", () => {
         it("Should denormalize jam", () => {
+            const $manager = new Manager(null, null);
             const j = {
                 _id: '_id',
                 title: 'jam.title',
@@ -22,7 +23,7 @@ describe("Manager", () => {
                 album: 'jam.album',
                 foo: 'foo'
             }
-            const dj = Manager.denormJam(j)
+            const dj = $manager.denormJam(j)
             expect(dj).to.not.equal(j);
             expect(dj._id).to.equal(j._id);
             expect(dj.title).to.equal(j.title);
@@ -34,16 +35,16 @@ describe("Manager", () => {
     describe("findPreviousBump", () => {
         it("Should error on db error", () => {
             const aggregateStub = sinon.stub().throws();
-            Manager.bumps = { aggregate: aggregateStub }
+            const $manager = new Manager({ aggregate: aggregateStub }, null)
             
-            expect(Manager.findPreviousBump, "Expected findPreviousBump to throw").to.throw();
+            expect($manager.findPreviousBump, "Expected findPreviousBump to throw").to.throw();
         });
         it("Should return new Date on empty aggregate response", (done) => {
             const toArrayStub = sinon.stub().resolves([]);
             const aggregateStub = sinon.stub().returns({ toArray: toArrayStub });
-            Manager.bumps = { aggregate: aggregateStub }
+            const $manager = new Manager({ aggregate: aggregateStub }, null)
 
-            Manager.findPreviousBump('garbage').catch(error => {
+            $manager.findPreviousBump('garbage').catch(error => {
                 throw new Error(error);
             }).then(result => {
                 expect(aggregateStub.called, "Expected bumps.aggregate(..) to be called").to.be.true;
@@ -57,9 +58,9 @@ describe("Manager", () => {
         it("Should return first Date from aggregate response", (done) => {
             const toArrayStub = sinon.stub().resolves([{time:new Date(1)}, {time:new Date(2)}]);
             const aggregateStub = sinon.stub().returns({ toArray: toArrayStub });
-            Manager.bumps = { aggregate: aggregateStub }
+            const $manager = new Manager({ aggregate: aggregateStub }, null)
 
-            Manager.findPreviousBump('garbage').catch(error => {
+            $manager.findPreviousBump('garbage').catch(error => {
                 throw new Error(error);
             }).then(result => {
                 expect(aggregateStub.called, "Expected bumps.aggregate(..) to be called").to.be.true;
@@ -71,12 +72,12 @@ describe("Manager", () => {
         });
     });
     describe("retrieveJam", () => {
-        it("Should do some more unit testing", () => {
+        xit("Should do some more unit testing", () => {
             expect("this unit test").to.equal("useful");
         })
     });
     describe("bumpJam", () => {
-        it("Should do some more unit testing", () => {
+        xit("Should do some more unit testing", () => {
             expect("this unit test").to.equal("useful");
         })
     });

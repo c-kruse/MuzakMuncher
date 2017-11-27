@@ -13,10 +13,9 @@ const MongoClient = require('mongodb').MongoClient;
  */
 MongoClient.connect(config.database.url).then(db => {
         log.info('Sucesfully connected to MongoDB');
-        Manager.jams = db.collection('jams');
-        Manager.bumps = db.collection('bumps');
-    }).then(() => {
-        addListeners();
+        return new Manager(db.collection('bumps'), db.collection('jams'))
+    }).then((manager) => {
+        addListeners(manager);
     }).catch(error => {
         log.error('ERROR: Problem connecting to MongoDB.',error);
     });
@@ -25,7 +24,7 @@ MongoClient.connect(config.database.url).then(db => {
 /*  
  *  Constructs and starts Listeners for each found .xml resource found in the root_url
  */
-function addListeners() {
+function addListeners(manager) {
     return request(config.root_url, function(error, response, body) {
         if(!error && response.statusCode === 200) {
             const   $ = cheerio.load(body),
@@ -33,7 +32,7 @@ function addListeners() {
             
             elements.each((i, element) => {
                 const target = config.root_url+$(element).attr('href');
-                const listener = new Listener(target);
+                const listener = new Listener(target, manager);
                 listener.start()
                     .then(() => {
                         log.trace('New Listener to ' + target);

@@ -2,19 +2,19 @@
 const   request = require('request'),
         cheerio = require('cheerio');
 
-const   log = require('../config/log.js'),
-        config = require('../config/config.js'),
-        Manager = require('./manager.js');
+const log = require('../config/log.js'),
+    config = require('../config/config.js');
 
 
-function Listener(target) {
+function Listener(target, manager) {
     this.resource = target;
+    this.manager = manager;
 }
 
 
 Listener.prototype.start = function(){
     const that = this;
-    return Manager.findPreviousBump(that.resource)
+    return this.manager.findPreviousBump(that.resource)
         .then(previousBump => {
             that.previousBump = previousBump;
         }).catch(error => {
@@ -33,7 +33,7 @@ Listener.prototype._listen = function() {
     return request(that.resource, function(error, response, body) {
         if(!error && response.statusCode === 200) {
             const $ = cheerio.load(body);
-            const time = _parseDate($('program last_updated').text())
+            const time = that._parseDate($('program last_updated').text())
             
             if (time.getTime() !== that.previousBump.time.getTime()) {
                 const jam = {
@@ -48,10 +48,10 @@ Listener.prototype._listen = function() {
                         location : that.resource
                     }
                 };
-                Manager.retrieveJam(jam)
-                    .then(jam => Manager.denormJam(jam))
-                    .then(jam => {bump.jam = jam;})
-                    .then(jam => Manager.bumpJam(bump))
+                that.manager.retrieveJam(jam)
+                    .then(jam => that.manager.denormJam(jam))
+                    .then(jam => { bump.jam = jam; })
+                    .then(jam => that.manager.bumpJam(bump))
                     .then(bump => {that.previousBump = bump})
                     .catch(error => {
                         log.error('ERROR: Could not Bump that Jam', error);
@@ -71,7 +71,7 @@ Listener.prototype._listen = function() {
  * Guess timeout and reschedule _listen()
  */
 Listener.prototype._reschedule = function () {
-    const timeout = _guessTimeout(this.previousBump)
+    const timeout = this._guessTimeout(this.previousBump)
     setTimeout(this._listen.bind(this), timeout);
 };
 
@@ -79,7 +79,7 @@ Listener.prototype._reschedule = function () {
  * Guesses the length of a song to be STANDARD_DURATION and returns timeout for
  *  updateTime + STANDARD_DURATION with a built in minimum timeout of MIN_TIMEOUT
  */
-function _guessTimeout(bump) {
+Listener.prototype._guessTimeout = function(bump) {
     const asOfTime = (new Date()).getTime();  // Current time
     if (bump && bump.time) {
         const lastUpdate = bump.time.getTime();
@@ -96,7 +96,7 @@ function _guessTimeout(bump) {
  * This function transforms it to an ISO 8601 string
  * Adds EST(UTC-5) time zone information.
  */
-function _parseDate(text) {
+Listener.prototype._parseDate = function(text) {
     if (/^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/.test(text)) {
         const dateSplit = text.split('T');
         dateSplit[1] = dateSplit[1].replace(/-/g, ':');

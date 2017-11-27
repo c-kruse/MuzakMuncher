@@ -4,7 +4,7 @@
   "description": "Munches Muzak, Jams, and the fattest of Beats; Digests them in the dankest of Databases.",
   "main": "app.js",
   "scripts": {
-	"test": "node_modules/.bin/mocha --reporter spec",
+    "test": "node_modules/.bin/mocha -R spec --ui bdd",
     "start": "node app.js"
   },
   "author": "Christian Kruse",
